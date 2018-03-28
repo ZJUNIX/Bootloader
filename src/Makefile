@@ -3,7 +3,7 @@ export PROJECT      := bootloader
 export TARGET       := $(PROJECT).bin
 export MAP          := $(PROJECT).map
 export ELF          := $(PROJECT).elf
-export DISASSEMBLY  := $(PROJECT).txt
+export DISASSEMBLY  := $(PROJECT).disasm
 
 # cross compile tolchain
 export CROSS_COMPILE    := mips-mti-elf-
@@ -14,7 +14,7 @@ export OC   := $(CROSS_COMPILE)objcopy
 export OD   := $(CROSS_COMPILE)objdump
 
 # QEMU
-QEMU	:= G:/qemu/qemu-system-mipsel
+QEMU	:= qemu-system-mipsel
 
 # flags
 export TARGET_FLAG  := -mips32 -EL

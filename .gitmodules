@@ -1,0 +1,3 @@
+[submodule "scripts\\style"]
+	path = scripts\\style
+	url = https://github.com/ZJUNIX/coding-style

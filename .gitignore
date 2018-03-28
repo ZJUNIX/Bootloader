@@ -1,9 +1,5 @@
-
-# Created by https://www.gitignore.io/api/c,c++,assembler,visualstudiocode
-
-### Assembler ###
-*.[sS]
-*.bc
+### Disassembly files ###
+*.disasm
 
 ### C ###
 # Prerequisites
@@ -43,6 +39,7 @@
 *.i*86
 *.x86_64
 *.hex
+*.bin
 
 # Debug files
 *.dSYM/
@@ -80,11 +77,4 @@ dkms.conf
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 .history
-
-
-# End of https://www.gitignore.io/api/c,c++,assembler,visualstudiocode

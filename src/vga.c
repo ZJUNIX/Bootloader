@@ -6,18 +6,23 @@
 
 void write_reg(vga_regs port, uint8_t index, uint8_t data)
 {
+	uint8_t prev_index; // For interrupt-safe
 	switch (port) {
 	case MISC:
 		oportb(VGA_MISC_WRITE, data);
 		break;
 	case AC:
 		iportb(VGA_AC_RESET);
+		prev_index = iportb(VGA_AC_INDEX);
 		oportb(VGA_AC_INDEX, index);
 		oportb(VGA_AC_WRITE, data);
+		oportb(VGA_AC_INDEX,prev_index);
 		break;
 	default:
+		prev_index = iportb((uint32_t)port);
 		oportb((uint32_t)port, index);
 		oportb((uint32_t)port + 1, data);
+		oportb((uint32_t)port, prev_index);
 		break;
 	}
 }
@@ -185,6 +190,16 @@ void put_string(char *msg, uint32_t len, uint32_t row, uint32_t col)
 	for (uint32_t i = 0; i < len; i++) {
 		put_char(msg[i], row, col + i);
 	}
+}
+
+void vga_enable_cursor()
+{
+    write_reg(CRTC,0x0A,0x00);
+}
+
+void vga_disable_cursor()
+{
+	write_reg(CRTC,0x0A,0x20);
 }
 
 void vga_test()

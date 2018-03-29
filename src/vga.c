@@ -26,6 +26,28 @@ void write_reg(vga_regs port, uint8_t index, uint8_t data)
 		break;
 	}
 }
+uint8_t read_reg(vga_regs port, uint8_t index)
+{
+    uint8_t prev_index;
+	uint8_t data;
+	switch (port)
+	{
+	case AC:
+		iportb(VGA_AC_RESET);
+		prev_index = iportb(VGA_AC_INDEX);
+		oportb(VGA_AC_INDEX, index);
+		data = iportb(VGA_AC_READ);
+		oportb(VGA_AC_INDEX, prev_index);
+		break;
+	default:
+		prev_index = iportb((uint32_t) port);
+		oportb((uint32_t) port, index);
+		data = iportb((uint32_t) port + 1);
+		oportb((uint32_t) port, prev_index);
+		break;
+	}
+	return data;
+}
 
 uint32_t get_fb_seg()
 {
@@ -192,20 +214,25 @@ void put_string(char *msg, uint32_t len, uint32_t row, uint32_t col)
 	}
 }
 
-void vga_enable_cursor()
-{
-    write_reg(CRTC,0x0A,0x00);
-}
-
 void vga_disable_cursor()
 {
-	write_reg(CRTC,0x0A,0x20);
+    uint8_t tmp;
+	tmp = read_reg(CRTC,0x0A);
+    write_reg(CRTC,0x0A,tmp | (uint8_t)0x20);
+}
+
+void vga_enable_cursor()
+{
+	uint8_t tmp;
+	tmp = read_reg(CRTC,0x0A);
+    write_reg(CRTC,0x0A,tmp & (uint8_t)0xDF);
 }
 
 void vga_test()
 {
 	put_string("ZJUNIX Bootloader.", 19, 0, 0);
-    write_reg(CRTC,0x0A,0x20);
+    vga_disable_cursor();
+	vga_enable_cursor();
 	while (1)
 		;
 }

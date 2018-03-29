@@ -190,6 +190,7 @@ void put_string(char *msg, uint32_t len, uint32_t row, uint32_t col)
 void vga_test()
 {
 	put_string("ZJUNIX Bootloader.", 19, 0, 0);
+    write_reg(CRTC,0x0A,0x20);
 	while (1)
 		;
 }

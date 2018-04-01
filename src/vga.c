@@ -228,11 +228,43 @@ void vga_enable_cursor()
     write_reg(CRTC,0x0A,tmp & (uint8_t)0xDF);
 }
 
+// pos = row * 80 + col (when the screen is 80 * 25), etc.
+// Attention: The cursor will only occurr when the memory
+// has been wriiten in that position, otherwise it doesn't occur.
+// TODO: Knowing the mode and automately caculate pos from rows and cols
+void vga_set_cursor_positon(uint16_t pos)
+{
+
+    write_reg(CRTC,0x0F,(uint8_t)pos);// Write Cursor Location Low
+    write_reg(CRTC,0x0E,(uint8_t)(pos>>8));// Write Cursor Location High
+}
+
+// Specify the scan line location within a character cell at which
+// the cursor should begin with the top-most scan line in a character
+// cell being 0 and the bottom being with the value of the Maximum Scan Line field
+void vga_set_cursor_shape(uint8_t start,uint8_t end)
+{
+	uint8_t tmp;
+	start &= 0x1F;
+	end &= 0x1F;
+
+	tmp = read_reg(CRTC,0x0A);
+	tmp &= 0xE0;
+	write_reg(CRTC, 0x0A, tmp | start);
+
+	tmp = read_reg(CRTC,0x0B);
+	tmp &= 0xE0;
+	write_reg(CRTC, 0x0B, tmp | end);
+}
+
 void vga_test()
 {
-	put_string("ZJUNIX Bootloader.", 19, 0, 0);
+	put_string("ZJUNIX Bootloader.", 26, 0, 0);
+	put_char('a',1,0);
     vga_disable_cursor();
 	vga_enable_cursor();
+	vga_set_cursor_positon(24);
+    vga_set_cursor_shape(3,6);
 	while (1)
 		;
 }

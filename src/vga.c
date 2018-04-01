@@ -234,7 +234,6 @@ void vga_enable_cursor()
 // TODO: Knowing the mode and automately caculate pos from rows and cols
 void vga_set_cursor_positon(uint16_t pos)
 {
-
     write_reg(CRTC,0x0F,(uint8_t)pos);// Write Cursor Location Low
     write_reg(CRTC,0x0E,(uint8_t)(pos>>8));// Write Cursor Location High
 }

@@ -16,7 +16,7 @@ void write_reg(vga_regs port, uint8_t index, uint8_t data)
 		prev_index = iportb(VGA_AC_INDEX);
 		oportb(VGA_AC_INDEX, index);
 		oportb(VGA_AC_WRITE, data);
-		oportb(VGA_AC_INDEX,prev_index);
+		oportb(VGA_AC_INDEX, prev_index);
 		break;
 	default:
 		prev_index = iportb((uint32_t)port);
@@ -28,10 +28,9 @@ void write_reg(vga_regs port, uint8_t index, uint8_t data)
 }
 uint8_t read_reg(vga_regs port, uint8_t index)
 {
-    uint8_t prev_index;
+	uint8_t prev_index;
 	uint8_t data;
-	switch (port)
-	{
+	switch (port) {
 	case AC:
 		iportb(VGA_AC_RESET);
 		prev_index = iportb(VGA_AC_INDEX);
@@ -40,10 +39,10 @@ uint8_t read_reg(vga_regs port, uint8_t index)
 		oportb(VGA_AC_INDEX, prev_index);
 		break;
 	default:
-		prev_index = iportb((uint32_t) port);
-		oportb((uint32_t) port, index);
-		data = iportb((uint32_t) port + 1);
-		oportb((uint32_t) port, prev_index);
+		prev_index = iportb((uint32_t)port);
+		oportb((uint32_t)port, index);
+		data = iportb((uint32_t)port + 1);
+		oportb((uint32_t)port, prev_index);
 		break;
 	}
 	return data;
@@ -60,17 +59,18 @@ uint32_t get_fb_seg()
 	uint32_t seg_addr;
 	switch (seg_index) {
 	case 0:
-		/* pass through */
+	/* pass through */
 	case 1:
-		seg_addr = 0xb00a0000;
+		seg_addr = 0xa0000;
 		break;
 	case 2:
-		seg_addr = 0xb00b0000;
+		seg_addr = 0xb0000;
 		break;
 	case 3:
-		seg_addr = 0xb00b8000;
+		seg_addr = 0xb8000;
 		break;
 	}
+	seg_addr |= 0xb0000000;
 	return seg_addr;
 }
 
@@ -216,54 +216,44 @@ void put_string(char *msg, uint32_t len, uint32_t row, uint32_t col)
 
 void vga_disable_cursor()
 {
-    uint8_t tmp;
-	tmp = read_reg(CRTC,0x0A);
-    write_reg(CRTC,0x0A,tmp | (uint8_t)0x20);
+	uint8_t tmp;
+	tmp = read_reg(CRTC, 0x0A);
+	write_reg(CRTC, 0x0A, tmp | (uint8_t)0x20);
 }
 
 void vga_enable_cursor()
 {
 	uint8_t tmp;
-	tmp = read_reg(CRTC,0x0A);
-    write_reg(CRTC,0x0A,tmp & (uint8_t)0xDF);
+	tmp = read_reg(CRTC, 0x0A);
+	write_reg(CRTC, 0x0A, tmp & (uint8_t)0xDF);
 }
 
-// pos = row * 80 + col (when the screen is 80 * 25), etc.
-// Attention: The cursor will only occurr when the memory
-// has been wriiten in that position, otherwise it doesn't occur.
-// TODO: Knowing the mode and automately caculate pos from rows and cols
 void vga_set_cursor_positon(uint16_t pos)
 {
-    write_reg(CRTC,0x0F,(uint8_t)pos);// Write Cursor Location Low
-    write_reg(CRTC,0x0E,(uint8_t)(pos>>8));// Write Cursor Location High
+	/* cursor location low */
+	write_reg(CRTC, 0x0F, (uint8_t)pos);
+	/* cursor location high */
+	write_reg(CRTC, 0x0E, (uint8_t)(pos >> 8));
 }
 
-// Specify the scan line location within a character cell at which
-// the cursor should begin with the top-most scan line in a character
-// cell being 0 and the bottom being with the value of the Maximum Scan Line field
-void vga_set_cursor_shape(uint8_t start,uint8_t end)
+void vga_set_cursor_shape(uint8_t start, uint8_t end)
 {
 	uint8_t tmp;
 	start &= 0x1F;
 	end &= 0x1F;
 
-	tmp = read_reg(CRTC,0x0A);
+	tmp = read_reg(CRTC, 0x0A);
 	tmp &= 0xE0;
 	write_reg(CRTC, 0x0A, tmp | start);
 
-	tmp = read_reg(CRTC,0x0B);
+	tmp = read_reg(CRTC, 0x0B);
 	tmp &= 0xE0;
 	write_reg(CRTC, 0x0B, tmp | end);
 }
 
 void vga_test()
 {
-	put_string("ZJUNIX Bootloader.", 26, 0, 0);
-	put_char('a',1,0);
-    vga_disable_cursor();
-	vga_enable_cursor();
-	vga_set_cursor_positon(24);
-    vga_set_cursor_shape(3,6);
+	put_string("ZJUNIX Bootloader.", 18, 0, 0);
 	while (1)
 		;
 }

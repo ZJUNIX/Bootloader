@@ -1,5 +1,5 @@
-.extern vga_init
-.extern vga_test
+.extern preboot
+.extern boot
 
 .set noreorder
 
@@ -29,16 +29,11 @@ exc_ejtag_debug:
 
 boot_start:
     li $sp, 0x80400000
-    jal vga_init
+    jal preboot
     nop
-    jal vga_test
+    la $t0, boot
+    jalr $t0
     nop
 
 loop:
     j loop
-
-pseudo_func:
-    nop
-    nop
-    jr $ra
-    nop

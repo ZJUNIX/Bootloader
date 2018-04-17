@@ -1,3 +1,7 @@
+### Virtual disk file ###
+*.vhd
+*.vhdx
+
 ### Disassembly files ###
 *.disasm
 

@@ -23,11 +23,14 @@ export CCFLAG       := $(TARGET_FLAG) -c -fno-builtin -mno-abicalls \
 export ASFLAG       := $(TARGET_FLAG)
 export LDFLAG       := -EL -T bootloader.ld
 export QEMU_MACHINE := mips
-export QEMU_FLAG	:= -machine $(QEMU_MACHINE) -m 256 -bios $(TARGET) -monitor stdio -vga cirrus
+export QEMU_FLAG	:= -machine $(QEMU_MACHINE) \
+                       -m 256 -bios $(TARGET) \
+					   -monitor stdio -vga cirrus \
+					   -drive file=disk.vhd,format=vpc
 export QEMU_GDB_FLAG:= -S -gdb tcp::1234
 
 # objects
-export OBJS := boot.o vga.o io.o
+export OBJS := start.o preboot.o boot.o vga.o io.o
 
 # dependencies
 %.o: %.c

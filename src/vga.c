@@ -6,47 +6,20 @@
 
 void write_reg(vga_regs port, uint8_t index, uint8_t data)
 {
-	uint8_t prev_index; // For interrupt-safe
 	switch (port) {
-	case MISC:
+	case MISC: //杂项寄存器
 		oportb(VGA_MISC_WRITE, data);
 		break;
 	case AC:
-		iportb(VGA_AC_RESET);
-		prev_index = iportb(VGA_AC_INDEX);
+		iportb(VGA_AC_RESET); // 将端口状态设置为index状态
 		oportb(VGA_AC_INDEX, index);
 		oportb(VGA_AC_WRITE, data);
-		oportb(VGA_AC_INDEX,prev_index);
 		break;
 	default:
-		prev_index = iportb((uint32_t)port);
 		oportb((uint32_t)port, index);
 		oportb((uint32_t)port + 1, data);
-		oportb((uint32_t)port, prev_index);
 		break;
 	}
-}
-uint8_t read_reg(vga_regs port, uint8_t index)
-{
-    uint8_t prev_index;
-	uint8_t data;
-	switch (port)
-	{
-	case AC:
-		iportb(VGA_AC_RESET);
-		prev_index = iportb(VGA_AC_INDEX);
-		oportb(VGA_AC_INDEX, index);
-		data = iportb(VGA_AC_READ);
-		oportb(VGA_AC_INDEX, prev_index);
-		break;
-	default:
-		prev_index = iportb((uint32_t) port);
-		oportb((uint32_t) port, index);
-		data = iportb((uint32_t) port + 1);
-		oportb((uint32_t) port, prev_index);
-		break;
-	}
-	return data;
 }
 
 uint32_t get_fb_seg()
@@ -90,7 +63,36 @@ void write_vram(uint32_t addr_offset, uint8_t *data, uint32_t count)
 	memcpy(addr, data, count);
 }
 
-void set_palette()
+void set_palette(int is_graphics)
+{
+	int count;
+
+	/* set the PEL mask */
+	oportb(0x3C6, 0xFF);
+
+	/* set whole dac away, from 0 */
+	oportb(VGA_DAC_WRITE_INDEX, 0x00);
+
+	if (is_graphics)
+		count = 0xff;
+	else
+		count = 0x3f;
+
+	for (uint32_t i = 0; i < 0x0100; i++) {
+		if (i <= count) {
+			oportb(VGA_DAC_WRITE, palette[i * 3 + 0]);
+			oportb(VGA_DAC_WRITE, palette[i * 3 + 1]);
+			oportb(VGA_DAC_WRITE, palette[i * 3 + 2]);
+		} else {
+			oportb(VGA_DAC_WRITE, 0);
+			oportb(VGA_DAC_WRITE, 0);
+			oportb(VGA_DAC_WRITE, 0);
+		}
+	}
+}
+
+//图形模式
+void set_palette_g()
 {
 	/* set the PEL mask */
 	oportb(0x3C6, 0xFF);
@@ -99,7 +101,7 @@ void set_palette()
 	oportb(VGA_DAC_WRITE_INDEX, 0x00);
 
 	for (uint32_t i = 0; i < 0x0100; i++) {
-		if (i <= 0x3f) {
+		if (i <= 0xff) {
 			oportb(VGA_DAC_WRITE, palette[i * 3 + 0]);
 			oportb(VGA_DAC_WRITE, palette[i * 3 + 1]);
 			oportb(VGA_DAC_WRITE, palette[i * 3 + 2]);
@@ -149,6 +151,7 @@ void set_font()
 	release_font_access();
 }
 
+
 void set_text_block()
 {
 	write_reg(SEQ, 0x03, 0x00);
@@ -195,8 +198,27 @@ void set_mode(vga_config_param *mode)
 void vga_init()
 {
 	set_mode(&config_mode_0x03);
-	set_palette();
+	set_palette(0);
 	set_font();
+}
+
+
+//图形模式
+void put_pixel(unsigned char c, uint32_t x, uint32_t y)
+{
+	uint8_t *addr = (uint8_t *)get_fb_seg();
+	addr += y * 320 + x;
+	*addr = c;
+}
+
+//图形模式 -- 仅用于测试
+void put_line(unsigned char c, uint32_t x1, uint32_t y1, uint32_t x2)
+{
+	uint32_t x;
+
+	for (x = x1; x <= x2; x++) {
+		put_pixel(c, x, y1);
+	}
 }
 
 void put_char(char c, uint32_t row, uint32_t col)
@@ -214,56 +236,49 @@ void put_string(char *msg, uint32_t len, uint32_t row, uint32_t col)
 	}
 }
 
-void vga_disable_cursor()
+//模式转换 - 简易版
+void switch_mode(int new_mode)
 {
-    uint8_t tmp;
-	tmp = read_reg(CRTC,0x0A);
-    write_reg(CRTC,0x0A,tmp | (uint8_t)0x20);
+	/* 320 * 200 * 256 graphics */
+	if (new_mode == 0x13) {
+		set_mode(&config_mode_0x13);
+		set_palette(1);
+		set_font();
+	}
+	/* 40 * 25 text */
+	else if (new_mode == 0x01) {
+		set_mode(&config_mode_0x01);
+		set_palette(0);
+		set_font();
+	}
+	/* 80 * 25 text*/
+	else if (new_mode == 0x03) {
+		set_mode(&config_mode_0x03);
+		set_palette(0);
+		set_font();
+	}
+}
+// 40*25测试函数
+void vga_test_mode_0x01()
+{
+	switch_mode(0x01);
+	put_string("ZJUNIX Bootloader.", 19, 0, 0);
+	while (1)
+		;
 }
 
-void vga_enable_cursor()
+//图形模式测试函数
+void vga_test_g()
 {
-	uint8_t tmp;
-	tmp = read_reg(CRTC,0x0A);
-    write_reg(CRTC,0x0A,tmp & (uint8_t)0xDF);
-}
-
-// pos = row * 80 + col (when the screen is 80 * 25), etc.
-// Attention: The cursor will only occurr when the memory
-// has been wriiten in that position, otherwise it doesn't occur.
-// TODO: Knowing the mode and automately caculate pos from rows and cols
-void vga_set_cursor_positon(uint16_t pos)
-{
-    write_reg(CRTC,0x0F,(uint8_t)pos);// Write Cursor Location Low
-    write_reg(CRTC,0x0E,(uint8_t)(pos>>8));// Write Cursor Location High
-}
-
-// Specify the scan line location within a character cell at which
-// the cursor should begin with the top-most scan line in a character
-// cell being 0 and the bottom being with the value of the Maximum Scan Line field
-void vga_set_cursor_shape(uint8_t start,uint8_t end)
-{
-	uint8_t tmp;
-	start &= 0x1F;
-	end &= 0x1F;
-
-	tmp = read_reg(CRTC,0x0A);
-	tmp &= 0xE0;
-	write_reg(CRTC, 0x0A, tmp | start);
-
-	tmp = read_reg(CRTC,0x0B);
-	tmp &= 0xE0;
-	write_reg(CRTC, 0x0B, tmp | end);
+	switch_mode(0x13);
+	put_line(255, 10, 10, 50);
+	while (1)
+		;
 }
 
 void vga_test()
 {
-	put_string("ZJUNIX Bootloader.", 26, 0, 0);
-	put_char('a',1,0);
-    vga_disable_cursor();
-	vga_enable_cursor();
-	vga_set_cursor_positon(24);
-    vga_set_cursor_shape(3,6);
+	put_string("ZJUNIX Bootloader.", 19, 0, 0);
 	while (1)
 		;
 }

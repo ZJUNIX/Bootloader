@@ -7,7 +7,6 @@ export DISASSEMBLY  := $(PROJECT).disasm
 
 # cross compile tolchain
 export CROSS_COMPILE    := mips-mti-elf-
-
 export CC   := $(CROSS_COMPILE)gcc
 export AS   := $(CROSS_COMPILE)as
 export LD   := $(CROSS_COMPILE)ld
@@ -27,11 +26,11 @@ export QEMU_MACHINE := mips
 export QEMU_FLAG	:= -machine $(QEMU_MACHINE) \
                        -m 256 -bios $(TARGET) \
 					   -monitor stdio -vga cirrus \
-					   -drive file=disk.vhd,format=vpc
+					   -drive file=disk.vhd,format=vpc,if=ide,media=disk
 export QEMU_GDB_FLAG:= -S -gdb tcp::1234
 
 # objects
-export OBJS := start.o preboot.o boot.o vga.o io.o  utils.o vga_kernel_print.o
+export OBJS := start.o preboot.o boot.o vga.o io.o ata.o kernel_loader.o vga_kernel_print.o util.o
 
 # dependencies
 %.o: %.c

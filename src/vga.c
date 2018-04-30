@@ -254,6 +254,4 @@ void vga_set_cursor_shape(uint8_t start, uint8_t end)
 void vga_test()
 {
 	put_string("ZJUNIX Bootloader.", 18, 0, 0);
-	while (1)
-		;
 }

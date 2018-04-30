@@ -29,7 +29,6 @@ exc_ejtag_debug:
 
 boot_start:
     li $sp, 0x80400000
-    la $gp, _gp
     jal preboot
     nop
     la $t0, boot

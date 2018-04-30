@@ -13,5 +13,7 @@ void vga_set_cursor_positon(uint16_t pos);
 
 void put_char(char c, uint32_t row, uint32_t col);
 void put_string(char *msg, uint32_t len, uint32_t row, uint32_t col);
+char get_char(uint32_t row, uint32_t col);
+
 
 #endif // _VGA_H_

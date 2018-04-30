@@ -3,7 +3,7 @@
 #include "vga.h"
 
 const int VGA_CHAR_MAX_ROW = 32;
-const int VGA_CHAR_MAX_COL = 128;
+const int VGA_CHAR_MAX_COL = 80;
 const int VGA_CHAR_ROW = 30;
 const int VGA_CHAR_COL = 80;
 int cursor_row = 0;
@@ -12,21 +12,36 @@ int cursor_freq = 31;
 
 const int num_char_per_row = 80;
 
-unsigned int *CHAR_VRAM = 0; // dummy use, deprecated
+unsigned int CHAR_VRAM = 0; // dummy use, deprecated
 
 void kernel_set_cursor()
 {
 	vga_set_cursor_positon(num_char_per_row * cursor_col + cursor_row);
 }
 
-unsigned int *set_vram(unsigned int *dest, unsigned int w, int len)
+//@warpper function
+static void put_char_linear(char c, uint32_t linear_address)
 {
-	int starting_offset = (int)dest;
-	w = 0;
-	while (len--)
-		*dest++ = w;
+	put_char(c, linear_address/80 ,linear_address%80);
+}
 
-	return dest;
+
+
+//@warpper function
+static char get_char_linear(uint32_t linear_address)
+{
+	char ret = get_char(linear_address/80 ,linear_address%80);
+	return ret;
+}
+
+void set_vram(unsigned int starting_offset,int w, int len)
+{
+	//int starting_offset = (int)dest;
+	w = 0;//ignore the value of w
+	while (len--)
+		put_char_linear(w, starting_offset);//*dest++ = w;
+		starting_offset++;
+	return;
 }
 
 
@@ -41,10 +56,23 @@ void kernel_clear_screen(int scope)
 	set_vram(CHAR_VRAM, w, scope * VGA_CHAR_MAX_COL);
 }
 
+//void* kernel_memcpy(void* dest, void* src, int len);
+void copy_vram(int dest, int src, int len)
+{
+	while(len--)
+	{
+		int value_get = get_char_linear(src);
+		put_char_linear(value_get, dest);
+		src++;
+		dest++;
+	}
+	return;
+}
+
 void kernel_scroll_screen()
 {
 	unsigned int w = 0x000fff00;
-	kernel_memcpy(CHAR_VRAM, (CHAR_VRAM + VGA_CHAR_MAX_COL),
+	copy_vram(CHAR_VRAM, (CHAR_VRAM + VGA_CHAR_MAX_COL),
 		      (VGA_CHAR_ROW - 2) * VGA_CHAR_MAX_COL * 4);
 	set_vram((CHAR_VRAM + (VGA_CHAR_ROW - 2) * VGA_CHAR_MAX_COL), w,
 		 VGA_CHAR_MAX_COL);
@@ -67,6 +95,7 @@ int kernel_putchar(int ch, int fc, int bg)
 	if (ch == '\n') {
 		set_vram(CHAR_VRAM + cursor_row * VGA_CHAR_MAX_COL + cursor_col,
 			 w, VGA_CHAR_COL - cursor_col);
+	    //while(1);
 		cursor_col = 0;
 		if (cursor_row == VGA_CHAR_ROW - 2) {
 			kernel_scroll_screen();
@@ -206,4 +235,27 @@ int kernel_printf(const char *format, ...)
 	cnt = kernel_vprintf(format, ap);
 	va_end(ap);
 	return cnt;
+}
+
+int test_vga_prinf()
+{
+	int test_num_int = 2018;
+	char c = 'a';
+	kernel_printf("Hello %d %c \n888", test_num_int, 'a');
+	while(1==1)
+	{
+		kernel_printf("On that bold hill, against a broad blue stream,\n");
+		kernel_printf("stood Arthur Phillip on a day of dream;\n");
+		kernel_printf("what time the mists of morning westward rolled\n");
+		kernel_printf("and heaven flowered on a bay of gold.\n");
+		kernel_printf("Here, in the hour that shines and sounds afar,\n");
+		kernel_printf("flamed first Old England's banner like a star;\n");
+		kernel_printf("Here in a time august with prayer and praise,\n");
+		kernel_printf("was born the nation of these splendid days,\n");
+		kernel_printf("and here, this land's majestic yesterday\n");
+		kernel_printf("of immemorial silence died away \n");
+		int count_down=1000000000;
+		while(count_down--);
+	}
+	// put_string("2222", 20, 2, 2);
 }

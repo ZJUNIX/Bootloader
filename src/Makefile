@@ -6,7 +6,7 @@ export ELF          := $(PROJECT).elf
 export DISASSEMBLY  := $(PROJECT).disasm
 
 # cross compile tolchain
-export CROSS_COMPILE    := mips-mti-elf-
+export CROSS_COMPILE    := mips-img-elf-
 
 export CC   := $(CROSS_COMPILE)gcc
 export AS   := $(CROSS_COMPILE)as
@@ -26,7 +26,7 @@ export LDFLAG       := -EL -T bootloader.ld
 export QEMU_MACHINE := mips
 export QEMU_FLAG	:= -machine $(QEMU_MACHINE) \
                        -m 256 -bios $(TARGET) \
-					   -monitor stdio -vga cirrus \
+					   -monitor stdio -vga cirrus #\
 					   -drive file=disk.vhd,format=vpc
 export QEMU_GDB_FLAG:= -S -gdb tcp::1234
 

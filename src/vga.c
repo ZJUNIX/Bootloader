@@ -207,6 +207,17 @@ void put_char(char c, uint32_t row, uint32_t col)
 	*(addr + 1) = 7;
 }
 
+char get_char(uint32_t row, uint32_t col)
+{
+	char ret = 0;
+	uint8_t *addr = (uint8_t *)get_fb_seg();
+	addr += 2 * (80 * row + col);
+	//*addr = c;
+	//*(addr + 1) = 7;
+	ret = *addr;
+	return ret;
+}
+
 void put_string(char *msg, uint32_t len, uint32_t row, uint32_t col)
 {
 	for (uint32_t i = 0; i < len; i++) {

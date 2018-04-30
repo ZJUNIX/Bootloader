@@ -15,17 +15,31 @@ int cursor_row = 0;
 int cursor_col = 0;
 int cursor_freq = 31;
 
-/*
-void kernel_set_cursor() {
-    *GPIO_CURSOR = ((cursor_freq & 0xff) << 16) + ((cursor_row & 0xff) << 8) + (cursor_col & 0xff);
-}
+const int num_char_per_row = 80;
 
+unsigned int* CHAR_VRAM = 0;//dummy use, deprecated
+
+void kernel_set_cursor() {
+    //*GPIO_CURSOR = ((cursor_freq & 0xff) << 16) + ((cursor_row & 0xff) << 8) + (cursor_col & 0xff);
+    vga_set_cursor_positon(num_char_per_row * cursor_col + cursor_row );
+}
+/*
 void init_vga() {
     unsigned int w = 0x000fff00;
     cursor_row = cursor_col = 0;
     cursor_freq = 31;
     kernel_set_cursor();
 }
+*/
+unsigned int* set_vram(unsigned int* dest, unsigned int w, int len) {
+    int starting_offset = (int) dest;
+    w = 0;     
+    while (len--)
+        *dest++ = w;
+
+    return dest;
+}
+
 
 void kernel_clear_screen(int scope) {
     
@@ -34,22 +48,25 @@ void kernel_clear_screen(int scope) {
     cursor_col = 0;
     cursor_row = 0;
     kernel_set_cursor();
-    kernel_memset_word(CHAR_VRAM, w, scope * VGA_CHAR_MAX_COL);
+    set_vram(CHAR_VRAM, w, scope * VGA_CHAR_MAX_COL);
     
 }
 
 void kernel_scroll_screen() {
     unsigned int w = 0x000fff00;
     kernel_memcpy(CHAR_VRAM, (CHAR_VRAM + VGA_CHAR_MAX_COL), (VGA_CHAR_ROW - 2) * VGA_CHAR_MAX_COL * 4);
-    kernel_memset_word((CHAR_VRAM + (VGA_CHAR_ROW - 2) * VGA_CHAR_MAX_COL), w, VGA_CHAR_MAX_COL);
+    set_vram((CHAR_VRAM + (VGA_CHAR_ROW - 2) * VGA_CHAR_MAX_COL), w, VGA_CHAR_MAX_COL);
 }
 
 void kernel_putchar_at(int ch, int fc, int bg, int row, int col) {
     unsigned int *p;
     row = row & 31;
     col = col & 127;
-    p = CHAR_VRAM + row * VGA_CHAR_MAX_COL + col;
-    *p = ((bg & 0xfff) << 20) + ((fc & 0xfff) << 8) + (ch & 0xff);//litle endian
+    //p = CHAR_VRAM + row * VGA_CHAR_MAX_COL + col;
+    //*p = ((bg & 0xfff) << 20) + ((fc & 0xfff) << 8) + (ch & 0xff);//litle endian
+    
+    put_char(ch, row, col);
+    
     //display: 
 	//    blue green red    blue green red    ascii
 	//       background        character       code
@@ -62,7 +79,7 @@ int kernel_putchar(int ch, int fc, int bg) {
     if (ch == '\r')
         return ch;
     if (ch == '\n') {
-        kernel_memset_word(CHAR_VRAM + cursor_row * VGA_CHAR_MAX_COL + cursor_col, w, VGA_CHAR_COL - cursor_col);
+        set_vram(CHAR_VRAM + cursor_row * VGA_CHAR_MAX_COL + cursor_col, w, VGA_CHAR_COL - cursor_col);
         cursor_col = 0;
         if (cursor_row == VGA_CHAR_ROW - 2) {
             kernel_scroll_screen();
@@ -76,7 +93,7 @@ int kernel_putchar(int ch, int fc, int bg) {
         if (cursor_col >= VGA_CHAR_COL - 4) {
             kernel_putchar('\n', 0, 0);
         } else {
-            kernel_memset_word(CHAR_VRAM + cursor_row * VGA_CHAR_MAX_COL + cursor_col, w, 4 - cursor_col & 3);
+            set_vram(CHAR_VRAM + cursor_row * VGA_CHAR_MAX_COL + cursor_col, w, 4 - cursor_col & 3);
             cursor_col = (cursor_col + 4) & (-4);
         }
     } else {
@@ -91,8 +108,10 @@ int kernel_putchar(int ch, int fc, int bg) {
 }
 
 
-*/
+
 //warper function
+
+/*
 int kernel_putchar(int ch, int fc, int bg) 
 {
     //void put_char(char c, uint32_t row, uint32_t col)
@@ -101,6 +120,7 @@ int kernel_putchar(int ch, int fc, int bg)
     put_char(ch, cursor_row, cursor_col);
 
 }
+*/
 
 int kernel_puts(const char *s, int fc, int bg) {
     int ret = 0;

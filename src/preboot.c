@@ -3,6 +3,7 @@
 extern uint8_t _rom_text_start[], _ram_text_start[], _text_size[];
 extern uint8_t _rom_data_start[], _ram_data_start[], _data_size[];
 extern uint8_t _rom_bss_start[], _ram_bss_start[], _bss_size[];
+extern uint8_t _gp[];
 
 void copy_section(uint8_t *dest, uint8_t *src, uint32_t size)
 {
@@ -31,4 +32,5 @@ void preboot()
 	copy_code();
 	copy_data();
 	copy_bss();
+	asm("move $gp,%0\n\t" : : "r"(_gp) :);
 }

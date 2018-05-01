@@ -1,6 +1,6 @@
 #include "ata.h"
-#include "vga.h"
 #include "kernel_loader.h"
+#include "vga.h"
 void boot()
 {
 	vga_init();

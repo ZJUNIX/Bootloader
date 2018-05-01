@@ -28,7 +28,6 @@
 #define ATTR_LONG_FILE_NAME 0x0F
 
 // other macros
-// #define PATH "./a.vhd"
 #define READ_LENGTH_MAX 4
 #define BASE_NAME_TO_FIND "KERNEL"
 #define BASE_NAME_TO_FIND_LENGTH 6
@@ -36,18 +35,18 @@
 #define EXTENDED_NAME_TO_FIND_LENGTH 3
 
 struct FAT32_basic_info {
-	int base_addr;		   // sector address
-	int sector_reserved;       // sector offset
-	int sector_per_cluster;    // amount
-	int FAT_base;		   // sector address
-	int FAT_count;		   // amount
-	int FAT_size;		   // sector
-	int data_sector;	   // sector address
-	int root_cluster_count;	// number of root_cluster
-	int root_cluster[ROOT_CLUSTER_MAX];	// root cluster list, <= 100 default
+	int base_addr;			    // sector address
+	int sector_reserved;		    // sector offset
+	int sector_per_cluster;		    // amount
+	int FAT_base;			    // sector address
+	int FAT_count;			    // amount
+	int FAT_size;			    // sector
+	int data_sector;		    // sector address
+	int root_cluster_count;		    // number of root_cluster
+	int root_cluster[ROOT_CLUSTER_MAX]; // root cluster list, <= 100 default
 };
 
-// an FAT32 short file name dentry
+// FAT32 short file name dentry
 struct FAT32_short_file_name_dentry {
 	char base_name[BASE_NAME_LENGTH];
 	char extended_name[EXTENDED_NAME_LENGTH];
@@ -65,10 +64,10 @@ struct FAT32_short_file_name_dentry {
 };
 
 struct target_file {
-	int size;		  // in bytes
-	char *data;		  // raw data
-	int cluster_count;	// number of clusters
-	int cluster[ROOT_CLUSTER_MAX];	// cluster list, <= 100 
+	int size;		       // in bytes
+	char *data;		       // raw data
+	int cluster_count;	     // number of clusters
+	int cluster[ROOT_CLUSTER_MAX]; // cluster list, <= 100
 };
 
 int load_kernel();

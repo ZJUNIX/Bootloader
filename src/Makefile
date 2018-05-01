@@ -30,7 +30,7 @@ export QEMU_FLAG	:= -machine $(QEMU_MACHINE) \
 export QEMU_GDB_FLAG:= -S -gdb tcp::1234
 
 # objects
-export OBJS := start.o preboot.o boot.o vga.o io.o ata.o kernel_loader.o vga_kernel_print.o util.o
+export OBJS := start.o preboot.o boot.o vga.o io.o ata.o kernel_loader.o
 
 # dependencies
 %.o: %.c

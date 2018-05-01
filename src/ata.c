@@ -5,8 +5,8 @@
 void ata_delay()
 {
 	uint32_t cycle = 0x2000;
-        while (cycle--)iportb(ATA_PRIMARY_IO+ATA_REG_STATUS);
-		;
+	while (cycle--)
+		iportb(ATA_PRIMARY_IO + ATA_REG_STATUS);
 }
 
 void ata_delay_poll(uint32_t io)
@@ -21,11 +21,11 @@ void ata_delay_poll(uint32_t io)
 }
 void ata_poll(uint32_t io)
 {
-        while (iportb(io + ATA_REG_STATUS) & ATA_SR_BSY)
-                ;
-        
-        while (!(iportb(io + ATA_REG_STATUS) & ATA_SR_DRQ))
-                ;
+	while (iportb(io + ATA_REG_STATUS) & ATA_SR_BSY)
+		;
+
+	while (!(iportb(io + ATA_REG_STATUS) & ATA_SR_DRQ))
+		;
 }
 
 int ata_identify_master()
@@ -48,7 +48,7 @@ int ata_identify_master()
 
 	if (status) {
 		// the primary device exists
-                ata_poll(io);
+		ata_poll(io);
 
 		uint16_t *tmp_buf = (uint16_t *)0x80000000;
 		for (int i = 0; i < 256; i++)
@@ -90,7 +90,7 @@ void ata_lba_write(uint32_t lba, uint8_t num_sectors, uint16_t *buf)
 
 	for (int sec = 0; sec < num_sectors; sec++) {
 		// Check status, wait for ready
-                ata_delay_poll(io);
+		ata_delay_poll(io);
 
 		// Send data
 		for (int i = 0; i < 256; i++) {
@@ -122,7 +122,7 @@ void ata_lba_read(uint32_t lba, uint8_t num_sectors, uint8_t *buf)
 
 	for (int sec = 0; sec < num_sectors; sec++) {
 		// Check status, wait for ready
-                ata_poll(io);
+		ata_poll(io);
 
 		// Read data
 		uint16_t data = 0;

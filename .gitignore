@@ -85,3 +85,4 @@ dkms.conf
 ### VisualStudioCode ###
 .vscode/*
 .history
+*.udb

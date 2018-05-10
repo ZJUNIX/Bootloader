@@ -17,7 +17,7 @@ export OD   := $(CROSS_COMPILE)objdump
 QEMU	:= qemu-system-mipsel
 
 # flags
-export TARGET_FLAG  := -mips32 -EL
+export TARGET_FLAG  := -march=mips32 -EL
 export CCFLAG       := $(TARGET_FLAG) -c -fno-builtin -mno-abicalls \
                        -nostdinc -std=gnu99
 export ASFLAG       := $(TARGET_FLAG)
